@@ -2,6 +2,7 @@ from flask.views import MethodView
 from flask import Flask, jsonify, request
 import json
 import os
+from functools import wraps
 
 
 app = Flask(__name__)
@@ -9,58 +10,83 @@ task_file = ("tareas.json")
 valid_state = ("Por hacer", "En proceso", "Completada")
 
 
+class JSONReadError(Exception):
+    pass
+class JSONWriteError(Exception):
+    pass
+
 def read_tasks():
-    if not os.path.exists(task_file):
-        return []
-    with open (task_file, "r") as f:
-        return json.load(f)
+    try:
+        if not os.path.exists(task_file):
+            return []
+        with open (task_file, "r") as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        raise JSONReadError({"error":"El archivo no contiene un JSON válido"})
+    except Exception as e:
+        raise JSONReadError({"error":"Ocurrio un error inesperado"})
 
 def save_tasks(tasks):
-    with open (task_file, "w") as f:
-        json.dump(tasks, f, indent=4)
+    try:
+        with open (task_file, "w") as f:
+            json.dump(tasks, f, indent=4)
+    except TypeError as e:
+        raise JSONWriteError({"error":"Los datos no son serializables a json"})
+
+@app.errorhandler(JSONReadError)
+def handle_json_read_error(error):
+    return jsonify({"error": str(error)}), 500
+
+@app.errorhandler(JSONWriteError)
+def handle_json_write_error(error):
+    return jsonify({"error": str(error)}), 500
+def verify_state(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        data = request.get_json()
+        if "estado" not in data or data["estado"] not in valid_state:
+            return jsonify({"error": "Estado inválido"}), 400
+        return func(*args, **kwargs)
+    return wrapper
 
 class Crud_task(MethodView):
     
-    def get_task():
+    def get():
         estado= request.args.get("estado")
         tasks = read_tasks()
         if estado:
             tasks = [t for t in tasks if t ["estado"]== estado]
         return jsonify(tasks)
 
-
-    def create_task():
+    @verify_state
+    def post():
         new = request.get_json()
         tasks = read_tasks()
-        if 'id' not in new or any(t['id'] == new['id'] for t in tasks):
-                return jsonify({'error': 'ID duplicado o no proporcionado'}), 400
+        for t in tasks:
+            if new["id"]==t["id"]:
+                return jsonify({"error": "ID duplicado"}), 400
 
-        for space in ['titulo', 'descripcion', 'estado']:
+        for space in ["id", "titulo", "descripcion", "estado"]:
             if space not in new or not new[space]:
                 return jsonify({'error': f'{space} es obligatorio'}), 400
-
-        if new['estado'] not in valid_state:
-            return jsonify({'error': 'Estado inválido'}), 400
 
         tasks.append(new)
         save_tasks(tasks)
         return jsonify(new), 201
 
-
-    def edit_tasks(id):
+    @verify_state
+    def put(id):
         data= request.get_json()
         tasks= read_tasks()
         for task in tasks:
             if task ["id"]==id:
                 task.update({k: v for k, v in data.items() if k in ['titulo', 'descripcion', 'estado']})
-                if "estado" in data and data["estado"] not in valid_state:
-                    return jsonify({"error": "Estado invalido"}), 400
                 save_tasks(tasks)
                 return jsonify(task)
         return jsonify({"Error":"Tarea no encontrada"}), 404
 
 
-    def delete_tasks(id):
+    def delete(id):
         tasks = read_tasks()
         new_tasks = [t for t  in tasks if t["id"] != id]
         if len(tasks) == len(new_tasks):
