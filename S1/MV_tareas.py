@@ -40,14 +40,15 @@ def handle_json_read_error(error):
 @app.errorhandler(JSONWriteError)
 def handle_json_write_error(error):
     return jsonify({"error": str(error)}), 500
-def verify_state(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        data = request.get_json()
-        if "estado" not in data or data["estado"] not in valid_state:
-            return jsonify({"error": "Estado inválido"}), 400
-        return func(*args, **kwargs)
-    return wrapper
+
+def verify_spaces(data, id_require= True):
+    mandatory_space = ["id","titulo", "descripcion", "estado"] if id_require else ["titulo", "descripcion", "estado"]
+    for space in mandatory_space:
+        if space not in data or not str(data[space]).strip():
+            return False, f"El campo '{space}' es obligatorio"
+    if data.get("estado") not in valid_state:
+        return False, "Estado inválido"
+    return True, None
 
 class Crud_task(MethodView):
     
@@ -58,29 +59,30 @@ class Crud_task(MethodView):
             tasks = [t for t in tasks if t ["estado"]== estado]
         return jsonify(tasks)
 
-    @verify_state
+
     def post():
-        new = request.get_json()
+        data = request.get_json()
+        valid_data, error_mg = verify_spaces(data, id_require=True)
+        if not valid_data:
+            return jsonify({"error": error_mg}), 400
         tasks = read_tasks()
         for t in tasks:
-            if new["id"]==t["id"]:
+            if data["id"]==t["id"]:
                 return jsonify({"error": "ID duplicado"}), 400
-
-        for space in ["id", "titulo", "descripcion", "estado"]:
-            if space not in new or not new[space]:
-                return jsonify({'error': f'{space} es obligatorio'}), 400
-
-        tasks.append(new)
+        tasks.append(data)
         save_tasks(tasks)
-        return jsonify(new), 201
+        return jsonify(data), 201
 
-    @verify_state
+
     def put(id):
         data= request.get_json()
+        valid_data, error_mg = verify_spaces(data, id_require=False)
+        if not valid_data:
+            return jsonify({"error": error_mg}), 400
         tasks= read_tasks()
         for task in tasks:
             if task ["id"]==id:
-                task.update({k: v for k, v in data.items() if k in ['titulo', 'descripcion', 'estado']})
+                task.update(data)
                 save_tasks(tasks)
                 return jsonify(task)
         return jsonify({"Error":"Tarea no encontrada"}), 404
