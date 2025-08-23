@@ -9,7 +9,9 @@ Fecha_de_ingreso VARCHAR(10) NOT NULL,
 Marca VARCHAR(25) NOT NULL
 );
 
-INSERT INTO Productos(Código, Nombre, Precio,  Fecha_de_Ingreso, Marca)
+ALTER TABLE Productos RENAME COLUMN Código TO Codigo;
+
+INSERT INTO Productos(Codigo, Nombre, Precio,  Fecha_de_Ingreso, Marca)
 VALUES
     ("P01", "Cinta", 1000, "19/08/2025", "CCM"),
     ("P02", "Taladro", 65000, "19/08/2025", "Makita"),
@@ -32,7 +34,10 @@ Telefono Int NOT NULL,
 Código_Empleado VARCHAR(5) NOT NULL
 );
 
-INSERT INTO Facturas(Número, Fecha, Correo, Monto, Telefono, Código_Empleado)
+ALTER TABLE Facturas RENAME COLUMN Número TO Numero;
+ALTER TABLE Facturas RENAME COLUMN Código_empleado TO Codigo_empleado;
+
+INSERT INTO Facturas(Numero, Fecha, Correo, Monto, Telefono, Codigo_Empleado)
 VALUES
     (  1, "19/08/2025", "ben@gmail.com", 71500, 84735468, "M1"),
     (  2, "19/08/2025", "agapito@gmail.com", 65000, 84238456, "M3"),
@@ -49,7 +54,9 @@ FOREIGN KEY (Número_Factura) REFERENCES Facturas(Número),
 FOREIGN KEY (ID_Producto) REFERENCES Productos(ID)
 );
 
-INSERT INTO Detalle_Factura(Número_Factura, ID_Producto, Cantidad)
+ALTER TABLE Detalle_Factura RENAME COLUMN Número_Factura TO Numero_Factura;
+
+INSERT INTO Detalle_Factura(Numero_Factura, ID_Producto, Cantidad)
 VALUES
     (1,2,1),
     (1,3,1),
@@ -71,8 +78,9 @@ Email VARCHAR (30) UNIQUE NOT NULL
 CREATE TABLE Detalle_Carrito(
 ID INTEGER PRIMARY KEY AUTOINCREMENT,
 ID_Carrito INT NOT NULL,
-Código_Producto INT NOT NULL,
+Código INT NOT NULL,
 Cantidad INT DEFAULT 1,
 FOREIGN KEY (ID_Carrito) REFERENCES Carrito(ID),
-FOREIGN KEY (Código_Producto) REFERENCES Productos(Código)
+FOREIGN KEY (Codigo_Producto) REFERENCES Productos(Codigo)
 );
+ALTER TABLE Detalle_Carrito RENAME COLUMN Código TO Codigo_Producto;
