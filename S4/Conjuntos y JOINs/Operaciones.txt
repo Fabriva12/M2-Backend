@@ -1,0 +1,28 @@
+All = {1,2,3,4,5,6,7,8,9,10}
+Even = {2,4,6,8,10}
+Odd = {1,3,5,7,9}
+​
+Realice las siguientes operaciones:
+Even U Odd {1,2,3,4,5,6,7,8,9,10}
+Even ∩ Odd {}
+All - Odd {2,4,6,8,10}
+C(Even) {1,3,5,7,9}
+C(Odd-All) {1,2,3,4,5,6,7,8,9,10}
+
+Investigue y busque documentación sobre el SELECT que explique cómo utilizar las funcionalidades de ORDER BY, LIMIT, GROUP BY y tres tipos de JOIN
+
+ORDER BY:
+Ordena los resultados de la consulta por una o más columnas, en orden ascendente (ASC) o descendente (DESC).
+LIMIT:
+Restringe el número de filas devueltas por la consulta
+GROUP BY: Agrupa filas que tienen los mismos valores en una o más columnas, permitiendo realizar funciones de agregación como SUM(), AVG(), COUNT(), MIN() o MAX() sobre cada grupo.
+Combinación de GROUP BY y ORDER BY 
+Se usan en la misma consulta, con GROUP BY seguido de ORDER BY
+
+Tipos de JOIN
+INNER JOIN:
+Devuelve solo las filas que tienen valores coincidentes en ambas tablas. 
+LEFT JOIN / LEFT OUTER JOIN:
+Devuelve todas las filas de la tabla izquierda y las filas coincidentes de la tabla derecha, o NULL si no hay coincidencia. 
+RIGHT JOIN / RIGHT OUTER JOIN:
+Devuelve todas las filas de la tabla derecha y las filas coincidentes de la tabla izquierda, o NULL si no hay coincidencia. 
