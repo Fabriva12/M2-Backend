@@ -15,10 +15,10 @@ Phone INT UNIQUE NOT NULL
 );
 
 -- Y la tabla Insurance
-CREATE TABLE Owner(
+CREATE TABLE insurance(
 ID INTEGER PRIMARY KEY AUTOINCREMENT,
-Name VARCHAR (30) NOT NULL,
-Phone INT UNIQUE NOT NULL,
+Insurance_Company VARCHAR (30) NOT NULL,
+Insurance_Policy VARCHAR (20),
 Vehicle_ID INT NOT NULL,
 FOREIGN KEY (Vehicle_ID) REFERENCES Vehicle(ID)
 );
@@ -67,3 +67,30 @@ VALUES
     (2, 1),
     (3, 2),
     (4, 3);
+
+-- Intente quitar la columna vehicle_id de insurance pero no lo logré la cree nuevamente
+ALTER TABLE Insurance
+DROP COLUMN Vehicle_ID;
+
+DROP TABLE Insurance
+CREATE TABLE insurance(
+ID INTEGER PRIMARY KEY AUTOINCREMENT,
+Insurance_Company VARCHAR (30) NOT NULL,
+Insurance_Policy VARCHAR (20),
+);
+
+-- Cree una nueva tabla
+CREATE TABLE Vehicle_Insurance(
+ID INTEGER PRIMARY KEY AUTOINCREMENT,
+Vehicle_ID INT NOT NULL,
+Insurance_ID INT NOT NULL,
+FOREIGN KEY (Vehicle_ID) REFERENCES Vehicle(ID),
+FOREIGN KEY (Insurance_ID) REFERENCES Insurance(ID)
+);
+
+INSERT INTO Vehicle_Insurance (Vehicle_ID, Insurance_ID)
+VALUES
+    (1,1),
+    (1,2),
+    (2,3),
+    (3,4);
