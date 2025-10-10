@@ -54,9 +54,9 @@ def new_product(decoded):
         traceback.print_exc()
         return Response("Error interno", status=500)
 
-@app.route('/market', methods =['GET','POST'])
+@app.route('/see_products', methods =['GET','POST'])
 @token_required()
-def market(decoded):
+def see_products(decoded):
     try:
         if decoded.get("state") == False:
             return Response("No estas registrado", status=403)
@@ -65,7 +65,11 @@ def market(decoded):
             return Response("Necesitas el ID del producto" , status=400)
         product_ID=  data["ID"] 
         product= CacheManager.get_data(product_ID)
-        
+        if product is None:
+            product = db_manager.get_product(product_ID)
+            CacheManager.store_data(product)
+            if product is None:
+                return Response("Producto no encontrado", status=404)
         return jsonify(product)
 
     except Exception as e:
@@ -96,23 +100,6 @@ def buy_product(decoded):
         traceback.print_exc()
         return Response("Error interno", status=500)
 
-@app.route('/bills', methods=['GET'])
-@token_required()
-def get_bills(decoded):
-    try:
-        if decoded.get("state") == "admin":
-            result=db_manager.get_bills()
-            return jsonify(result)
-        user_ID = decoded.get("id")
-        if decoded.get("state") == "client":
-            result=db_manager.get_bills_by_ID(user_ID)
-            return jsonify(result)
-    except Exception as e:
-        import traceback
-        print("Error en /get_bills:", e)
-        traceback.print_exc()
-        return Response("Error interno", status=500)
-    
 
 @app.route('/update_product', methods=['PUT'])
 @token_required()
@@ -130,9 +117,83 @@ def update_product(decoded):
         return jsonify({"success": True, "message": "Producto actualizado correctamente"})
 
     except Exception as e:
+        return Response("Error interno", status=500)
+    
+
+@app.route('/delete_product', methods=['DELETE'])
+@token_required()
+def delete_product(decoded):
+    try:
+        if decoded.get("state") != "admin":
+            return Response("No autorizado", status=403)
+
+        data = request.get_json()
+        if not data or "ID" not in data:
+            return Response("Datos incompletos", status=400)
+        product_ID = data["ID"]
+        db_manager.delete_product(product_ID)
+        CacheManager.delete_data(product_ID)
+        return jsonify({"success": True, "message": "Producto eliminado correctamente"})
+
+    except Exception as e:
+        return Response("Error interno", status=500)
+
+
+@app.route('/bills', methods=['GET'])
+@token_required()
+def get_bills(decoded):
+    try:
+        if decoded.get("state") == "admin":
+            result=db_manager.get_bills()
+            return jsonify(result)
+        user_ID = decoded.get("id")
+        if decoded.get("state") == "client":
+            result=db_manager.get_bills_by_ID(user_ID)
+            return jsonify(result)
+    except Exception as e:
         import traceback
-        print("Error en /new_product:", e)
+        print("Error en /get_bills:", e)
         traceback.print_exc()
         return Response("Error interno", status=500)
+    
+    
+@app.route('/delete_bills', methods=['DELETE'])
+@token_required()
+def delete_bills(decoded):
+    try:
+        if decoded.get("state") != "admin":
+            return Response("No autorizado", status=403)
+
+        data = request.get_json()
+        if not data or "user_ID" not in data:
+            return Response("Datos incompletos", status=400)
+        user_ID = data["user_ID"]
+        db_manager.delete_bills(user_ID)
+        return jsonify({"success": True, "message": "Facturas eliminadas correctamente"})
+
+    except Exception as e:
+        return Response("Error interno", status=500) 
+
+
+@app.route('/update_bill', methods=['PUT'])
+@token_required()
+def return_bill(decoded):
+    try:
+        if decoded.get("state") != "admin":
+            return Response("No autorizado", status=403)
+
+        data = request.get_json()
+        if not data or "ID" not in data or "product_ID" not in data:
+            return Response("Datos incompletos", status=400)
+        bill_ID = data["ID"]
+        product_ID = data["product_ID"]
+        
+        db_manager.return_bill(product_ID,bill_ID)
+        CacheManager.delete_data(product_ID)
+        return jsonify({"success": True, "message": "Factura actualizada correctamente"})
+
+    except Exception as e:
+        return Response("Error interno", status=500)
+
 if __name__ == "__main__":
     app.run(debug=True)
