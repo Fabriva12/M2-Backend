@@ -50,7 +50,8 @@ bill_table = Table(
     Column("user_ID",Integer, ForeignKey("user_table.ID")),
     Column("product_ID",Integer, ForeignKey("product_table.ID")),
     Column("quantity",Integer),
-    Column("Total", Integer)
+    Column("Total", Integer),
+    Column("State", String(25))
 )
 
 create_tables()
