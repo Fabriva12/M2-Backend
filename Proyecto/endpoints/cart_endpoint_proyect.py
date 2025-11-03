@@ -39,9 +39,9 @@ def new_cart(decoded):
 
 
 # Esta funcion permite ver los carritos de un usuario
-@cart_bp.route('/see_my_carts', methods=['GET'])
+@cart_bp.route('/my_carts', methods=['GET'])
 @token_required()
-def see_my_carts(decoded):
+def my_carts(decoded):
     try:
         if  not decoded['role']:
             return Response("No autorizado", status=403)

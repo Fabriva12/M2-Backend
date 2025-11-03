@@ -37,9 +37,9 @@ def new_product(decoded):
         return Response("Error interno", status=500)
 
 # Con esta funcion permite ver productos y los almacena en la cache
-@product_bp.route('/see_product', methods=['GET'])
+@product_bp.route('/product', methods=['GET'])
 @token_required()
-def see_product(decoded):
+def product(decoded):
     try:
         if decoded.get("role") not in ["admin", "user"]:
             return Response("No autorizado", status=403)

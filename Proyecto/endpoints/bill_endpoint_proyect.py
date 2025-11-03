@@ -8,9 +8,9 @@ bill_bp = Blueprint('bill', __name__)
 db_manager= Bill_DB()
 
 # Con la siguiente funcion creamos un endpoint para ver una factura despues de una compra
-@bill_bp.route('/view_bill', methods=['POST'])
+@bill_bp.route('/bill', methods=['GET'])
 @token_required()
-def view_bills(decoded):
+def bills(decoded):
     try:
         if  not decoded['role']:
             return Response("No autorizado", status=403)
